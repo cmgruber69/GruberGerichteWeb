@@ -1,0 +1,149 @@
+﻿@page "/gerichtenew"
+@using GruberGerichteWeb.Shared.Models
+@using GruberGerichteWeb.Client.Helpers
+@using System.Linq;
+@inject NavigationManager Navigation
+@inject HttpClient http 
+
+<h3>Gerichte registrieren</h3>
+
+<EditForm Model="@gerichte" OnValidSubmit="@ValidInsert">
+    <div class="form-group">
+        <label for="exampleInputEmail1">Gerichte Name</label>
+        <input type="text" class="form-control w-25" id="categoria" @bind=@gerichte.GerichteName maxlength="200">
+
+    </div>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Beschreibung</label>
+        <textarea rows="2"
+                  class="form-control w-50"
+                  style="resize:both;"
+                  @bind=@gerichte.GerichteBeschreibung>
+        </textarea>
+    </div>
+    <div class="form-group w-25">
+        <label for="exampleInputEmail1">Preis (Euro)</label>
+        <input type="number" class="form-control" id="categoria" @bind=@gerichte.GerichtePreis placeholder="DDI" maxlength="4">
+    </div>
+    <div class="form-group">
+        <hr />
+        <label for="exampleInputEmail1">Speise</label>
+        <MultipleSelector Selected="SelectedKat" NoSelected="NotSelectedKat"></MultipleSelector>
+    </div>
+    <div class="form-group">
+        <hr />
+        <label for="exampleInputEmail1">Mahlzeit</label>
+        <MultipleSelector Selected="SelectedZe" NoSelected="NotSelectedZe"></MultipleSelector>
+    </div>
+    <div class="form-group">
+        <hr />
+        <label for="exampleInputEmail1">Wochentag</label>
+        <MultipleSelector Selected="SelectedWo" NoSelected="NotSelectedWo"></MultipleSelector>
+    </div>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Wartezeit (Minuten)</label>
+        <input type="number" class="form-control w-25" @bind=@gerichte.Wartezeit maxlength="3">
+    </div>
+
+    <div class="form-group">
+        <input id="ButtonCancelar" type="button" value="Cancel" class="btn" @onclick="Cancel" />
+        <input id="ButtonSalvar" type="submit" value="Save" class="btn btn-primary" />
+    </div>
+
+</EditForm>
+
+
+@code {
+    Gerichte gerichte = new Gerichte();
+
+    [Parameter] public List<GerichteEnum.Kategorie> SelectedKategorie { get; set; } = new List<GerichteEnum.Kategorie>();
+    [Parameter] public List<GerichteEnum.Kategorie> NotSelectedKategorie { get; set; } = new List<GerichteEnum.Kategorie>();
+
+    [Parameter] public List<GerichteEnum.Zeitangebot> SelectedZeit { get; set; } = new List<GerichteEnum.Zeitangebot>();
+    [Parameter] public List<GerichteEnum.Zeitangebot> NotSelectedZeit { get; set; } = new List<GerichteEnum.Zeitangebot>();
+
+    [Parameter] public List<GerichteEnum.Wochentage> SelectedWoche { get; set; } = new List<GerichteEnum.Wochentage>();
+    [Parameter] public List<GerichteEnum.Wochentage> NotSelectedWoche { get; set; } = new List<GerichteEnum.Wochentage>();
+
+
+    private List<MultipleSelectorModel> SelectedKat = new List<MultipleSelectorModel>();
+    private List<MultipleSelectorModel> NotSelectedKat = new List<MultipleSelectorModel>();
+
+    private List<MultipleSelectorModel> SelectedZe = new List<MultipleSelectorModel>();
+    private List<MultipleSelectorModel> NotSelectedZe = new List<MultipleSelectorModel>();
+
+    private List<MultipleSelectorModel> SelectedWo = new List<MultipleSelectorModel>();
+    private List<MultipleSelectorModel> NotSelectedWo = new List<MultipleSelectorModel>();
+
+
+
+    protected override void OnInitialized()
+    {
+        List<string> NotSelectedKategorie = Enum.GetNames(typeof(GerichteEnum.Kategorie)).ToList();
+        List<string> NotSelectedZeit = Enum.GetNames(typeof(GerichteEnum.Zeitangebot)).ToList();
+        List<string> NotSelectedWoche = Enum.GetNames(typeof(GerichteEnum.Wochentage)).ToList();
+
+        SelectedKat = SelectedKategorie.Select(x => new MultipleSelectorModel(x.ToString())).ToList();
+        NotSelectedKat = NotSelectedKategorie.Select(x => new MultipleSelectorModel(x.ToString())).ToList();
+
+        SelectedZe = SelectedZeit.Select(z => new MultipleSelectorModel(z.ToString())).ToList();
+        NotSelectedZe = NotSelectedZeit.Select(z => new MultipleSelectorModel(z.ToString())).ToList();
+
+        SelectedWo = SelectedWoche.Select(w => new MultipleSelectorModel(w.ToString())).ToList();
+        NotSelectedWo = NotSelectedWoche.Select(w => new MultipleSelectorModel(w.ToString())).ToList();
+
+    }
+
+    private async void ValidInsert()
+    {
+        await AddGerichte();
+    }
+
+    void Cancel()
+    {
+        Navigation.NavigateTo("/gerichte");
+    }
+
+    protected async Task AddGerichte()
+    {
+        try
+        {
+            //TODO: Bind the multiselect to the Object.
+
+            var ret = new List<string>();
+            foreach (var kat in SelectedKat)
+            {
+                if (kat.Value != null)
+                {
+                    ret.Add(kat.Value);
+                }
+            }
+
+            //List<GerichteEnum.Kategorie> names = new List<GerichteEnum.Kategorie>(2) { "Vorspeise", "Hauptspeise" };
+
+
+            //Vorspeise, Hauptspeise
+            gerichte.Kategorie = SelectedKategorie;
+
+            //gerichte.Kategorie = NotSelectedKategorie;
+
+            //gerichte.Kategorie = SelectedKat.ToList();
+
+
+            gerichte.Zeitangebot = SelectedZeit;
+            //gerichte.Wochentage = SelectedWoche;
+
+            await http.PostAsJsonAsync<Gerichte>("api/Gerichte", gerichte);
+
+            StateHasChanged();
+            Navigation.NavigateTo("/gerichte");
+        }
+        catch
+        {
+
+
+        }
+    }
+
+}
+

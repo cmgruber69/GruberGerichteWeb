@@ -1,0 +1,65 @@
+﻿@page "/gerichte"
+@inherits GerichteListBase
+
+@if (GeList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (GeList.Count == 0)
+{
+    <p><em>No Data..</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Gerichte</th>
+                <th>Preise</th>
+                <th class="text-right"> <a class="btn btn-success text-white"  href='/gerichtenew'>Neu</a></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var GeItem in GeList)
+            {
+                <tr>
+                    <td>
+                        <b>@GeItem.GerichteName</b>
+                        <br />
+                        @GeItem.GerichteBeschreibung
+                        <br />
+                        @foreach (var kaItem in GeItem.Kategorie)
+                        {
+                            @(String.Format("{0} {1}", kaItem.ToString(), " | "))
+                        }
+                        <br />
+                        @foreach (var woItem in GeItem.Wochentage)
+                        {
+                            @(String.Format("{0} {1}", woItem.ToString(), " | "))
+                        }
+                        <br />
+                        @(String.Format("{0} {1}","Id: " , GeItem.Id.ToString()))
+                        <br />
+                        @(String.Format("Wartezeit {0} (Minuten)", GeItem.Wartezeit))
+                    </td>
+                    <td>
+                        <b>@(string.Format("€ {0:N2}", GeItem.GerichtePreis))</b>
+                    </td>
+                    <td class="text-right">
+                        <a class="btn btn-primary m-1" href='/gerichteedit/@GeItem.Id'>Edit</a>
+                        <a class="btn btn-danger text-white m-1"  @onclick="@(()=> DeleteGerichte(GeItem.Id))">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+<Confirm @ref="confirm" onConfirm="@DeleteConfirm" onCancel="@CancelConfirm">
+    <h5>@MenssageDelete </h5>
+</Confirm>
+
+<MessageAlert IsVisible="AlertIsVisible">
+    <h5>@AlertMessage</h5>
+</MessageAlert>
